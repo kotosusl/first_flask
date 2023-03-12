@@ -1,46 +1,50 @@
-from flask import Flask, url_for
+from flask import Flask, render_template, request, redirect
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
 
-@app.route('/')
-def start():
-    return 'Миссия Колонизация Марса'
+@app.route('/answer', methods=['POST', 'GET'])
+def answer():
+    if request.method == 'GET':
+        return render_template('index.html')
+    elif request.method == 'POST':
+        global dct
+        professions = []
+        if request.form.get('accept-engineer', ''):
+            professions.append('Инженер-исследователь')
+        if request.form.get('accept-engineer2', ''):
+            professions.append('Инженер-строитель')
+        if request.form.get('accept-pilot', ''):
+            professions.append('Пилот')
+        if request.form.get('accept-meteo', ''):
+            professions.append('Метеоролог')
+        if request.form.get('accept-engineer3', ''):
+            professions.append('Инженер по жизнеобеспечению')
+        if request.form.get('accept-engineer4', ''):
+            professions.append('Инженер по радиационной защите')
+        if request.form.get('accept-doctor', ''):
+            professions.append('Врач')
+        if request.form.get('accept-eczobio', ''):
+            professions.append('Экзобиолог')
+        ready = 'True' if request.form.get('accept', '') else 'False'
+        dct = {
+            "surname": request.form.get('lastname', ''),
+            "name": request.form.get('name', ''),
+            "education": request.form.get('class', ''),
+            "profession": ', '.join(professions),
+            "sex": request.form.get('sex', ''),
+            "motivation": request.form.get('about', ''),
+            "ready": ready
+        }
+        return redirect('/auto_answer')
 
 
-@app.route('/index')
-def index():
-    return 'И на Марсе будут яблони цвести!'
+@app.route('/auto_answer')
+def auto_answer():
+    return render_template('auto_answer.html', title="Анкета", dct=dct)
 
 
-@app.route('/promotion')
-def promotion():
-    return '</br>'.join(['Человечество вырастает из детства.',
-                         'Человечеству мала одна планета.',
-                         'Мы сделаем обитаемыми безжизненные пока планеты.',
-                         'И начнем с Марса!',
-                         'Присоединяйся!'])
-
-
-@app.route('/image_mars')
-def image_mars():
-    return f"""<!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Привет, Марс!</title>
-                </head>
-                <body>
-                <h1>Жди нас, Марс!</h1>
-                    <figure>
-                        <img src="{url_for('static', filename='img/mars.jpg')}" alt="здесь должна была быть картинка, но не нашлась">
-                        <figcaption>Вот она какая, красная планета.</figcaption>
-                    </figure>
-                </body>
-                </html>"""
-
-
+dct = {}
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080)
